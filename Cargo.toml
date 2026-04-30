@@ -27,3 +27,4 @@ crossterm = "0.27"
 opt-level = 3
 lto       = true
 strip     = "symbols"
+panic     = "abort"

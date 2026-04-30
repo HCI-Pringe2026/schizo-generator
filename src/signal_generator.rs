@@ -105,10 +105,9 @@ fn configure_dac(device: &mut Lusbapi, requested_rate_hz: f64) -> Result<f64, St
     }
 
     let mut pars = DAC_PARS_E140 {
-        DacRate:      requested_rate_hz / 1000.0, // kHz
         SyncWithADC:  0,
         SetZeroOnStop: 1,
-        ..Default::default()
+        DacRate:      requested_rate_hz / 1000.0, // kHz
     };
 
     if !device.set_dac_pars(&mut pars) {
@@ -117,7 +116,8 @@ fn configure_dac(device: &mut Lusbapi, requested_rate_hz: f64) -> Result<f64, St
 
     // The DLL adjusts DacRate to the nearest achievable value.
     device.dac_pars = pars;
-    Ok(pars.DacRate * 1000.0)
+    let actual_rate_khz = pars.DacRate;
+    Ok(actual_rate_khz * 1000.0)
 }
 
 /// Double-buffered async streaming loop.
@@ -349,8 +349,8 @@ fn normalise_phase(mut p: f64) -> f64 {
 fn make_voltage_sample(voltage: f64, channel: usize, device: &Lusbapi) -> SHORT {
     let normalized = (voltage / DAC_FULL_SCALE_VOLTS).clamp(-1.0, 1.0);
     let raw = normalized * 32767.0;
-    let a   = device.module_description.Dac.OffsetCalibration[channel];
-    let b   = device.module_description.Dac.ScaleCalibration[channel];
+    let a   = device.module_description.dac_offset_calibration(channel);
+    let b   = device.module_description.dac_scale_calibration(channel);
     let corrected = (raw + a) * b;
     clamp_to_short(corrected)
 }
@@ -370,13 +370,11 @@ fn print_run_info(
     device:          &Lusbapi,
 ) {
     let desc = &device.module_description;
-    let sn   = unsafe { std::ffi::CStr::from_ptr(desc.Module.SerialNumber.as_ptr()) }
-        .to_str()
-        .unwrap_or("?");
+    let sn   = desc.serial_number();
     let usb  = if device.usb_speed != 0 { "High-Speed (480 Mbit/s)" } else { "Full-Speed (12 Mbit/s)" };
 
-    println!("Module:              E14-140, serial: {sn}");
-    println!("Revision:            {}", desc.Module.Revision as u8 as char);
+    println!("Module:              E14-140, serial: {}", sn);
+    println!("Revision:            {}", desc.revision() as char);
     println!("USB mode:            {usb}");
     println!("Requested DAC rate:  {:.3} kHz", requested_rate / 1000.0);
     println!("Actual DAC rate:     {:.3} kHz", actual_rate    / 1000.0);
