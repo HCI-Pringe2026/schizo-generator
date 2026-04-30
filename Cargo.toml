@@ -1,0 +1,29 @@
+[package]
+name = "lcard_dac_signal_generator"
+version = "0.1.0"
+edition = "2021"
+description = "E14-140 two-channel DAC signal generator (LCard Lusbapi)"
+
+[[bin]]
+name = "lcard_dac_signal_generator"
+path = "src/main.rs"
+
+[dependencies]
+# windows-rs 0.58 — loaded dynamically, no import library needed at build time.
+# Feature names map 1-to-1 with Win32 API header groups.
+windows = { version = "0.58", features = [
+    "Win32_Foundation",         # HANDLE, BOOL, INVALID_HANDLE_VALUE, WAIT_OBJECT_0, CloseHandle
+    "Win32_Security",           # SECURITY_ATTRIBUTES — required by CreateEventW signature
+    "Win32_System_Console",     # SetConsoleCtrlHandler
+    "Win32_System_IO",          # OVERLAPPED, GetOverlappedResult, CancelIo
+    "Win32_System_LibraryLoader", # LoadLibraryW, GetProcAddress
+    "Win32_System_Threading",   # CreateEventW, WaitForMultipleObjects, INFINITE, Sleep
+] }
+
+# Pure-Rust terminal TUI — replaces Qt widgets
+crossterm = "0.27"
+
+[profile.release]
+opt-level = 3
+lto       = true
+strip     = "symbols"
