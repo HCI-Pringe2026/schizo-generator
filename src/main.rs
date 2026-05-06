@@ -31,7 +31,7 @@ fn parse_cli(args: &[String]) -> Result<MultiCycleParams, String> {
     if args.len() < 3 { return Err("Need: <duration> <pause> <num_cycles> [f0_0 f1_0 ...]".into()); }
     let dur = f(&args[0], "duration")?;
     let pause = f(&args[1], "pause")?;
-    let n: usize = args[2].parse().map_err(|_| "num_cycles must be integer".into())?;
+    let n: usize = args[2].parse().map_err(|_| "num_cycles must be integer")?;
     if n == 0 { return Err("num_cycles >= 1".into()); }
     
     let mut steps = Vec::with_capacity(n);

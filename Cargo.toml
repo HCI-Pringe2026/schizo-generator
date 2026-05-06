@@ -18,7 +18,6 @@ windows = { version = "0.58", features = [
     "Win32_System_LibraryLoader", # LoadLibraryW, GetProcAddress
     "Win32_System_Threading",   # CreateEventW, WaitForMultipleObjects, INFINITE, Sleep
     "Win32_System_Console",  # для Ctrl-C обработчика
-    "core",
 ] }
 
 # Pure-Rust terminal TUI — replaces Qt widgets
