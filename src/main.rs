@@ -61,22 +61,33 @@ fn main() {
 
 // ── CLI argument parsing ──────────────────────────────────────────────────────
 
-fn parse_cli(args: &[String]) -> Result<GeneratorParams, String> {
-    fn f(s: &str, name: &str) -> Result<f64, String> {
-        s.parse::<f64>()
-            .map_err(|_| format!("Invalid value for {name}: '{s}'"))
+fn parse_cli(args: &[String]) -> Result<MultiCycleParams, String> {
+    // Пример: program <duration> <pause> <num_cycles> f0_0 f1_0 f0_1 f1_1 ...
+    if args.len() < 5 {
+        return Err("Need: <duration> <pause> <num_cycles> <f0_0> <f1_0> [<f0_1> <f1_1> ...]".into());
     }
-    if args.len() < 3 {
-        return Err("At least 3 arguments required.".into());
+    fn f(s: &str) -> Result<f64, String> { s.parse().map_err(|_| format!("Invalid number: {s}")) }
+    let dur = f(&args[0])?;
+    let pause = f(&args[1])?;
+    let n: usize = args[2].parse().map_err(|_| "num_cycles must be integer".into())?;
+    if n == 0 { return Err("num_cycles must be >= 1".into()); }
+    
+    let mut steps = Vec::with_capacity(n);
+    let mut idx = 3;
+    for _ in 0..n {
+        if idx + 1 >= args.len() { return Err(format!("Missing frequencies for cycle {}", steps.len() + 1)); }
+        steps.push(CycleStep { freq_ch0_hz: f(&args[idx])?, freq_ch1_hz: f(&args[idx+1])? });
+        idx += 2;
     }
-    Ok(GeneratorParams {
-        duration_sec:    f(&args[0], "duration_s")?,
-        freq_ch0_hz:     f(&args[1], "freq0_hz")?,
-        freq_ch1_hz:     f(&args[2], "freq1_hz")?,
-        phase_ch0_deg:   args.get(3).map(|s| f(s, "phase0_deg")).transpose()?.unwrap_or(0.0),
-        phase_ch1_deg:   args.get(4).map(|s| f(s, "phase1_deg")).transpose()?.unwrap_or(0.0),
-        amplitude_volts: args.get(5).map(|s| f(s, "amplitude_v")).transpose()?.unwrap_or(1.0),
-        offset_volts:    args.get(6).map(|s| f(s, "offset_v")).transpose()?.unwrap_or(0.0),
+    
+    Ok(MultiCycleParams {
+        steps,
+        duration_sec_per_step: dur,
+        pause_sec_between_steps: pause,
+        amplitude_volts: 1.0,
+        offset_volts: 0.0,
+        phase_ch0_deg: 0.0,
+        phase_ch1_deg: 0.0,
     })
 }
 
