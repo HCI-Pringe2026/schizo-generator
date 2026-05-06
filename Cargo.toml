@@ -14,10 +14,11 @@ path = "src/main.rs"
 windows = { version = "0.58", features = [
     "Win32_Foundation",         # HANDLE, BOOL, INVALID_HANDLE_VALUE, WAIT_OBJECT_0, CloseHandle
     "Win32_Security",           # SECURITY_ATTRIBUTES — required by CreateEventW signature
-    "Win32_System_Console",     # SetConsoleCtrlHandler
     "Win32_System_IO",          # OVERLAPPED, GetOverlappedResult, CancelIo
     "Win32_System_LibraryLoader", # LoadLibraryW, GetProcAddress
     "Win32_System_Threading",   # CreateEventW, WaitForMultipleObjects, INFINITE, Sleep
+    "Win32_System_Console",  # для Ctrl-C обработчика
+    "core",
 ] }
 
 # Pure-Rust terminal TUI — replaces Qt widgets

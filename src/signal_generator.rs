@@ -188,7 +188,7 @@ fn wait_overlapped_completed(handle: HANDLE, overlapped: &mut OVERLAPPED) -> Res
         match result {
             Ok(()) => return Ok(bytes / std::mem::size_of::<SHORT>() as u32),
             Err(e) => {
-                let hr = e.code().0;
+                let hr: i32 = e.code().0; // ← явная аннотация типа
                 let code = (hr as u32) & 0xFFFF;
                 if code != ERROR_IO_INCOMPLETE { return Err(format!("GetOverlappedResult() failed: {e}")); }
                 unsafe { Sleep(1) };
